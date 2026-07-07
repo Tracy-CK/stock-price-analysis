@@ -4,7 +4,16 @@ import yfinance as yf
 
 DB_PATH = "stocks_cache.db"
 USED_TICKERS = ['AAPL','NVDA', 'JPM','XOM','AMZN','LMT']
-CLUSTER_LABELS = {t: "TBD" for t in USED_TICKERS}
+#CLUSTER_LABELS = {t: "TBD" for t in USED_TICKERS}
+
+def get_cluster_labels(volatility):
+    if volatility > 0.4:
+        return 'High volatility' 
+    elif volatility > 0.25:
+        return 'Moderate volatility'
+    else:
+        return 'Low volatility'
+    
 def connect():
     return sqlite3.connect(DB_PATH)
 

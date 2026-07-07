@@ -1,7 +1,9 @@
-import itertools
+#import itertools
 import pandas as pd
 import streamlit as st
-from data import load_prices, USED_TICKERS, CLUSTER_LABELS
+import plotly.express as px
+from data import load_prices, USED_TICKERS, get_cluster_labels
+
 
 @st.cache_data
 def load_sp500_list():
@@ -44,15 +46,27 @@ else:
     st.subheader("Correlation")
     st.dataframe(corr_matrix.style.background_gradient(cmap='RdYlGn_r', vmin=-1, vmax=1))
 
-    st.subheader("Volatility(annualized)")
-    st.bar_chart(vol)
+    st.subheader("Volatility & Behavioural cluster")
+    vol_df = pd.DataFrame({'Ticker':selected, 'Annualized volatility':[vol[t] for t in selected], 'Cluster':[get_cluster_labels(vol[t]) for t in selected]})
+    cluster_col={'High volatility' :'red', 'Moderate volatility' :'orange', 'Low volatility' :'green'} 
+    
+    #seen = set()
+    
+    fig = px.bar(
+        vol_df,
+        x='Ticker',
+        y='Annualized volatility',
+        color='Cluster',
+        color_discrete_map=cluster_col,
+        text='Cluster',
+        title='Annualized volatility & behavioural cluster'
+    )
 
-    st.subheader("Behavioural cluster")
-    for t in selected:
-        st.write(f"--{t}--: {CLUSTER_LABELS.get(t, 'Not yet classified')}")
+    fig.update_traces(textposition='outside')
+    fig.update_layout(showlegend=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("Takeaway")
-    for s1, s2 in itertools.combinations(selected,2):
-        c = corr_matrix.loc[s1,s2]
-        st.write(f"--{s1} & {s2}--({c:.2f}) - {takeaway(c)}")
+
+
+    
 
